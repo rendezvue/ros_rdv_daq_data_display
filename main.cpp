@@ -29,11 +29,15 @@ int main(int argc, char **argv) {
     QApplication a(argc, argv);
     MainWindow w;
 
-	int id = QFontDatabase::addApplicationFont("/home/rdv/catkin_ws/src/ros_rdv_daq_ui/fonts/2/NotoSansCJKkr-Bold.ttf");
-    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-     
-	QFont SerifFont(family);
-	QApplication::setFont(SerifFont);	
+	//폰트 PATH 변경이 필요함.
+	if(boost::filesystem::exists("/home/rdv/catkin_ws/src/ros_rdv_daq_ui/fonts/2/NotoSansCJKkr-Bold.ttf"))
+	{
+		int id = QFontDatabase::addApplicationFont("/home/rdv/catkin_ws/src/ros_rdv_daq_ui/fonts/2/NotoSansCJKkr-Bold.ttf");
+	    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+	     
+		QFont SerifFont(family);
+		QApplication::setFont(SerifFont);	
+	}
 
 	a.installEventFilter(&w);
 
