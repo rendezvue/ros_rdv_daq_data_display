@@ -226,7 +226,7 @@ void MainWindow::Update(void)
 	
 	//resize
 	//lidar
-	//if( !image_lidar.empty() )
+	if( !qimage_lidar.isNull() )
 	{
 	#if 0
 		//printf("Update 2 - 2 - 11 : image_zed_rgb : %d x %d\n", image_zed_rgb.cols, image_zed_rgb.rows) ;
