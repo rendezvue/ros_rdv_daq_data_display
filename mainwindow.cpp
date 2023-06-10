@@ -46,10 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->label_image_bg->setStyleSheet("QLabel { background-color : black; }");
 	ui->label_time->setStyleSheet("QLabel { color : QColor(101,193,192); }");
 	//ui->label_time->setStyleSheet("QLabel { color : white; }");
-	ui->label_job->setStyleSheet("QLabel { color : white; }");
-	ui->label_device_info->setStyleSheet("QLabel { color : white; }");
 	ui->label_bag_path->setStyleSheet("QLabel { color : white; }");
-	ui->label_usb_disk_info->setStyleSheet("QLabel { color : white; }");
 	ui->label_version->setStyleSheet("QLabel { color : white; }");
 
 	ui->label_can_info_1->setStyleSheet("QLabel { color : white; }");
@@ -464,16 +461,6 @@ void MainWindow::Update(void)
 	m_mutex_str_now.unlock() ;
 	
 	ui->label_time->setText(QString::fromUtf8(str_text.c_str()))  ;
-
-	m_mutex_str_info.lock(); 
-	std::string str_job_info = m_str_info ;
-	m_mutex_str_info.unlock() ;
-	ui->label_job->setText(QString::fromUtf8(str_job_info.c_str()))  ;
-
-	m_mutex_str_ip.lock(); 
-	std::string str_device_info = "IP : " + m_str_ip ;
-	m_mutex_str_ip.unlock() ;
-	ui->label_device_info->setText(QString::fromUtf8(str_device_info.c_str()))  ;
 
 	ros::NodeHandle n;
 	std::string str_param_rec_path = "" ;
@@ -1099,53 +1086,6 @@ void MainWindow::ThreadFunction_Time(void)
 		m_str_now = str_now ;
 		m_mutex_str_now.unlock() ;
 
-		std::string str_device = "정보없음";
-		std::string str_name = "정보없음";
-		std::string str_job = "정보없음";
-		
-		if(boost::filesystem::exists("/home/rdv/.info.ini"))
-		{
-			//ini 파일 정보 읽기
-			boost::property_tree::ptree pt;
-		    boost::property_tree::ini_parser::read_ini( "/home/rdv/.info.ini", pt );
-		    str_device = pt.get<std::string>("info.str_device", "");
-			str_name = pt.get<std::string>("info.str_name", "");
-			str_job = pt.get<std::string>("info.str_job", "");
-		}
-
-		m_mutex_str_info.lock() ;
-		m_str_info = str_device + " ☞ " + str_job  ;
-		m_mutex_str_info.unlock() ;
-
-		//ipaddress
-		//printf(" - ipaddress\n") ;
-		//-------------------------
-		//IP Address
-		std::string str_ip2 = s_getIpAddress("eth0") ;
-
-		#if 0
-		boost::asio::io_service io_service;
-		boost::asio::ip::tcp::resolver resolver(io_service);
-		boost::asio::ip::tcp::resolver::query query(boost::asio::ip::host_name(), "");
-		boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-		boost::asio::ip::tcp::resolver::iterator end; // End marker.
-
-		std::string str_ip_address ;
-		while (iter != end)
-		{
-			boost::asio::ip::tcp::endpoint ep = *iter++;
-			//std::cout << ep << std::endl;
-
-			std::string str_ip = ep.address().to_string();
-
-			str_ip_address = str_ip ;
-		}
-		#endif
-		
-		m_mutex_str_ip.lock() ;
-		m_str_ip = str_ip2 ;
-		m_mutex_str_ip.unlock() ;
-		
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
 	} ;
 }

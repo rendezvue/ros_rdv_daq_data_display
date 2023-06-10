@@ -203,9 +203,6 @@ private:
 	boost::mutex m_mutex_str_info;
 	std::string m_str_info ;
 
-	boost::mutex m_mutex_str_ip;
-	std::string m_str_ip;
-
 	//font
 	//cv::Ptr<cv::freetype::FreeType2> m_ft2 ;
 	//cv::Ptr<cv::freetype::FreeType2> m_ft2_info ;

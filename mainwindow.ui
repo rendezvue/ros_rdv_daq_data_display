@@ -177,27 +177,6 @@
      <string>시간</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_job">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>50</y>
-      <width>591</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>20</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>일지정보</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_info_top_left">
     <property name="geometry">
      <rect>
@@ -336,27 +315,6 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_device_info">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>20</y>
-      <width>211</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>일지정보</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_bag_path">
     <property name="geometry">
      <rect>
@@ -364,27 +322,6 @@
       <y>750</y>
       <width>1001</width>
       <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>일지정보</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_usb_disk_info">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>40</y>
-      <width>211</width>
-      <height>20</height>
      </rect>
     </property>
     <property name="font">
@@ -1013,16 +950,13 @@
    <zorder>label_image_bottom_right</zorder>
    <zorder>label_image_bottom_middle</zorder>
    <zorder>label_time</zorder>
-   <zorder>label_job</zorder>
    <zorder>label_info_top_left</zorder>
    <zorder>label_info_top_middle</zorder>
    <zorder>label_info_top_right</zorder>
    <zorder>label_info_bottom_left</zorder>
    <zorder>label_info_bottom_middle</zorder>
    <zorder>label_info_bottom_right</zorder>
-   <zorder>label_device_info</zorder>
    <zorder>label_bag_path</zorder>
-   <zorder>label_usb_disk_info</zorder>
    <zorder>label_version</zorder>
    <zorder>label_can_info_1</zorder>
    <zorder>label_can_info_2</zorder>
