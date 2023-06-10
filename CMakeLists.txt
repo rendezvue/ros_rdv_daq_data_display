@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-project(ros_rdv_daq_ui)
+project(ros_rdv_daq_data_display)
 
 # Set minimum C++ standard to C++11
 if (NOT "${CMAKE_CXX_STANDARD_COMPUTED_DEFAULT}")
@@ -326,8 +326,8 @@ message(STATUS "GIT_COMMIT_DATE : ${GIT_COMMIT_DATE}")
 
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
-add_executable(ros_rdv_daq_ui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP} )
-target_link_libraries(ros_rdv_daq_ui
+add_executable(ros_rdv_daq_data_display ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP} )
+target_link_libraries(ros_rdv_daq_data_display
     Qt5::Widgets
     Qt5::Core
     Qt5::Gui
@@ -337,8 +337,8 @@ target_link_libraries(ros_rdv_daq_ui
     ${OpenCV_LIBS}
     ${PCL_LIBRARIES}
 )
-#target_link_libraries(ros_rdv_daq_ui ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
-#target_link_libraries(ros_rdv_daq_ui glfw ${GLFW_LIBRARIES} GLEW)
+#target_link_libraries(ros_rdv_daq_data_display ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
+#target_link_libraries(ros_rdv_daq_data_display glfw ${GLFW_LIBRARIES} GLEW)
 
-install(TARGETS ros_rdv_daq_ui RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS ros_rdv_daq_data_display RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

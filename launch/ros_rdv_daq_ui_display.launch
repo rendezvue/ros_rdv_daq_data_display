@@ -1,3 +1,0 @@
-<launch>
-	<node pkg="ros_rdv_daq_ui" type="ros_rdv_daq_ui" respawn="false" name="ros_rdv_daq_ui" output="screen" />
-</launch>
