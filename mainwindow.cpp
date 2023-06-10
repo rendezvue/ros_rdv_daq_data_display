@@ -4,30 +4,6 @@
 #include <stdio.h> 
 #include <time.h>
 
-std::string s_getIpAddress (std::string str_dev) 
-{
-    int sockfd;
-    struct ifreq ifrq;
-    struct sockaddr_in * sin;
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    strcpy(ifrq.ifr_name, str_dev.c_str());
-    if (ioctl(sockfd, SIOCGIFADDR, &ifrq) < 0) {
-        perror( "ioctl() SIOCGIFADDR error");
-        return std::string() ;
-    }
-    sin = (struct sockaddr_in *)&ifrq.ifr_addr;
-
-	unsigned char addr[4] = {0,};
-    memcpy (addr, (void*)&sin->sin_addr, sizeof(sin->sin_addr));
-
-	std::string str_ip = std::to_string((int)addr[0]) + "." +  std::to_string((int)addr[1]) + "." +  std::to_string((int)addr[2]) +  "." +  std::to_string((int)addr[3]) ;
-	
-    close(sockfd);
-
-    return str_ip;
-}
-
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) ,
@@ -38,11 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-	std::cout << "OpenCV version : " << CV_VERSION << std::endl;
-	std::cout << "Major version : " << CV_MAJOR_VERSION << std::endl;
-	std::cout << "Minor version : " << CV_MINOR_VERSION << std::endl;
-	std::cout << "Subminor version : " << CV_SUBMINOR_VERSION << std::endl;
-	
 	ui->label_image_bg->setStyleSheet("QLabel { background-color : black; }");
 	ui->label_time->setStyleSheet("QLabel { color : QColor(101,193,192); }");
 	//ui->label_time->setStyleSheet("QLabel { color : white; }");
@@ -97,19 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->label_image_bottom_middle->setStyleSheet("QLabel { background-color : green; }");
 	ui->label_image_bottom_right->setStyleSheet("QLabel { background-color : green; }");
 	#endif
-	
-	printf("test-1\n") ;
-	
-	//font
-	//m_ft2 = cv::freetype::createFreeType2();
-	//m_ft2_info = cv::freetype::createFreeType2();
-
-	//printf("test-11\n") ;
-	//m_ft2->loadFontData("/home/rdv/catkin_ws/src/ros_rdv_daq_ui/fonts/2/NotoSansCJKkr-Bold.ttf", 0);
-	//m_ft2_info->loadFontData("/home/rdv/catkin_ws/src/ros_rdv_daq_ui/fonts/2/NotoSansCJKkr-Regular.ttf", 0);
-
-	printf("test-2\n") ;
-	
+		
     //showMaximized();
     //setWindowState(Qt::WindowFullScreen);
 	
@@ -118,14 +77,6 @@ MainWindow::MainWindow(QWidget *parent) :
    	p_thread = new boost::thread(boost::bind(&MainWindow::ThreadFunction, this));
 	p_thread_time = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Time, this));
 		
-#if 0
-	p_thread_zed_rgb = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Subscriber_ZED_RGB, this));
-	p_thread_zed_depth = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Subscriber_ZED_DEPTH, this));
-	p_thread_lucid_rgb = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Subscriber_LUCID_RGB, this));
-	p_thread_lucid_nir = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Subscriber_LUCID_NIR, this));
-	p_thread_lidar = new boost::thread(boost::bind(&MainWindow::ThreadFunction_Subscriber_LIDAR, this));
-#endif
-
 	printf("MainWindow : Init : Start Draw Thread\n") ;
 	//BOOST_LOG_TRIVIAL(info) << "MainWindow : Init : Start Draw Thread";
 	m_rdv_thread = new CRdvThread() ;
@@ -133,8 +84,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_rdv_thread, SIGNAL(Update()),this, SLOT(Update()));
     m_rdv_thread->start();
 	
-	//boost::thread thread_ros_service(boost::bind(&MainWindow::ThreadFunction_Run_ROS_Service, this));
-
 	printf("Init. Done\n") ;
 	//BOOST_LOG_TRIVIAL(info) << "Init. Done";
 }
@@ -680,6 +629,8 @@ void MainWindow::pcd2Mat(const pcl::PointCloud<pcl::PointXYZ> &pc)
 
 void MainWindow::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) 
 {
+	printf("IMU Info ->\n") ;		
+
 	//ROS_INFO("Imu Seq: [%d]", msg->header.seq);
   	//ROS_INFO("Imu Orientation x: [%f], y: [%f], z: [%f], w: [%f]", msg->orientation.x,msg->orientation.y,msg->orientation.z,msg->orientation.w);
 
@@ -691,10 +642,14 @@ void MainWindow::imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
 	m_str_imu_linear_y = std::to_string(msg->linear_acceleration.y) ;;
 	m_str_imu_linear_z = std::to_string(msg->linear_acceleration.z) ;;
 	m_mutex_str_imu.unlock() ;
+	
+	printf("<- IMU Info\n") ;
 }
 
 void MainWindow::canCallback(const std_msgs::String::ConstPtr& msg) 
-{
+{	
+	printf("CAN Info ->\n") ;
+	
 	//ROS_INFO("Imu Seq: [%d]", msg->header.seq);
   	//ROS_INFO("Imu Orientation x: [%f], y: [%f], z: [%f], w: [%f]", msg->orientation.x,msg->orientation.y,msg->orientation.z,msg->orientation.w);
 	m_mutex_str_can_raw.lock() ;
@@ -878,18 +833,11 @@ void MainWindow::canCallback(const std_msgs::String::ConstPtr& msg)
 					}
 				}
 			}
-
-			//printf("data length = %d\n", data_length) ;
-			int size_str_data = vec_str_data.size() ;
-			//printf("str_data size = %d\n", size_str_data) ;
-
-			for( int j=0 ; j<size_str_data ; j++ )
-			{
-				//printf(" - [%d] %s\n", j, vec_str_data[j].c_str()) ;
-			}		
 		}	
 	}
 	//printf("-----\n") ;
+
+	printf("<- CAN Info\n") ;
 }
 
 
@@ -898,6 +846,8 @@ void MainWindow::canCallback(const std_msgs::String::ConstPtr& msg)
 
 void MainWindow::pcdCallback(const sensor_msgs::PointCloud2ConstPtr& msg) 
 {
+	printf("LIDAR Info ->\n") ;
+	
 	try
 	{
 		//pcl::PointCloud<pcl::PointXYZ> cloud;
@@ -950,6 +900,8 @@ void MainWindow::pcdCallback(const sensor_msgs::PointCloud2ConstPtr& msg)
 	
 	
 	//ROS_INFO("pointcloud recieved");
+
+	printf("<- LIDAR Info\n") ;
 }
 
 void MainWindow::ThreadFunction(void)
@@ -991,84 +943,6 @@ void MainWindow::ThreadFunction(void)
 #endif	
 }
 
-void MainWindow::ThreadFunction_Subscriber_ZED_RGB()
-{
-	
-	int argc=0 ;
-	char** argv = nullptr ;
-	ros::init(argc,argv, "daq_zed_rgb");
-	ros::NodeHandle n;
-
-	//zed color
-	image_transport::ImageTransport it(n);
-	image_transport::Subscriber sub = it.subscribe("/zed2i/zed_node/rgb_raw/image_raw_color", 10, &MainWindow::Callback_Ros_Zed, this);
-
-	ros::spin();
-}
-
-void MainWindow::ThreadFunction_Subscriber_ZED_DEPTH()
-{
-	int argc=0 ;
-	char** argv = nullptr ;
-	ros::init(argc,argv, "daq_zed_depth");
-	ros::NodeHandle n;
-
-	//zed depth
-	image_transport::ImageTransport it_zed_depth(n);
-	image_transport::Subscriber sub_zed_depth = it_zed_depth.subscribe("/zed2i/zed_node/depth/depth_registered", 10, &MainWindow::Callback_Ros_Zed_Depth, this);
-
-
-	ros::spin();
-}
-
-void MainWindow::ThreadFunction_Subscriber_LUCID_RGB()
-{
-	int argc=0 ;
-	char** argv = nullptr ;
-	ros::init(argc,argv, "daq_lucid_rgb");
-	ros::NodeHandle n;
-
-	//lucid rgb
-	image_transport::ImageTransport it_lucid_rgb(n);
-	image_transport::Subscriber sub_lucid_rgb = it_lucid_rgb.subscribe("/arena_camera_node/image_raw", 10, &MainWindow::Callback_Ros_Lucid_RGB, this);
-
-
-	ros::spin();
-
-}
-
-void MainWindow::ThreadFunction_Subscriber_LUCID_NIR()
-{
-	int argc=0 ;
-	char** argv = nullptr ;
-	ros::init(argc,argv, "daq_lucid_nir");
-	ros::NodeHandle n;
-
-	//lucid nir
-	image_transport::ImageTransport it_lucid_nir(n);
-	image_transport::Subscriber sub_lucid_nir = it_lucid_nir.subscribe("/arena_camera_node_2/image_raw", 10, &MainWindow::Callback_Ros_Lucid_NIR, this);
-
-	ros::spin();
-
-}
-
-void MainWindow::ThreadFunction_Subscriber_LIDAR()
-{
-	
-	int argc=0 ;
-	char** argv = nullptr ;
-	ros::init(argc,argv, "daq_lidar");
-	ros::NodeHandle n;
-
-	//lidar
-	// Setup a basic viewport window
-	ros::Subscriber sub_lidar = n.subscribe("/velodyne_points", 1000, &MainWindow::pcdCallback, this);
-	
-	printf("ThreadFunction - Sub. OK \n") ;
-	ros::spin();
-
-}
-
 void MainWindow::ThreadFunction_Time(void)
 {
 	while(1)
@@ -1093,6 +967,7 @@ void MainWindow::ThreadFunction_Time(void)
 
 void MainWindow::Callback_Ros_Zed( const sensor_msgs::ImageConstPtr& msg ) 
 {
+	printf("Stereo Color Info ->\n") ;
 	m_mutex_image_zed_rgb.lock();
 	
 	cv_bridge::CvImagePtr cv_ptr;
@@ -1107,10 +982,13 @@ void MainWindow::Callback_Ros_Zed( const sensor_msgs::ImageConstPtr& msg )
 	}
 
 	m_mutex_image_zed_rgb.unlock();
+	printf("<- Stereo Color Info\n") ;
 }
 
 void MainWindow::Callback_Ros_Zed_Depth( const sensor_msgs::ImageConstPtr& msg ) 
 {
+	printf("Stereo Depth Info ->\n") ;
+	
 	m_mutex_image_zed_depth.lock();
 	
 	cv_bridge::CvImagePtr cv_ptr;
@@ -1147,10 +1025,14 @@ void MainWindow::Callback_Ros_Zed_Depth( const sensor_msgs::ImageConstPtr& msg )
 	}
 
 	m_mutex_image_zed_depth.unlock();
+
+	printf("<- Stereo Depth Info\n") ;
 }
 
 void MainWindow::Callback_Ros_Lucid_RGB( const sensor_msgs::ImageConstPtr& msg )
 {
+	printf("RGB Info ->\n") ;
+	
 	m_mutex_image_lucid_rgb.lock();
 	
 	cv_bridge::CvImagePtr cv_ptr;
@@ -1165,10 +1047,12 @@ void MainWindow::Callback_Ros_Lucid_RGB( const sensor_msgs::ImageConstPtr& msg )
 	}
 
 	m_mutex_image_lucid_rgb.unlock();
+	printf("<- RGB Info\n") ;
 }
 
 void MainWindow::Callback_Ros_Lucid_NIR( const sensor_msgs::ImageConstPtr& msg )
 {
+	printf("NIR Info ->\n") ;
 	m_mutex_image_lucid_nir.lock();
 	
 	cv_bridge::CvImagePtr cv_ptr;
@@ -1186,6 +1070,7 @@ void MainWindow::Callback_Ros_Lucid_NIR( const sensor_msgs::ImageConstPtr& msg )
 	}
 
 	m_mutex_image_lucid_nir.unlock();
+	printf("<- NIR Info\n") ;
 }
 
 double MainWindow::Get_Free_Disk_Space(const std::string path)

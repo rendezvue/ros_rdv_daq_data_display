@@ -206,18 +206,6 @@ private:
 	//font
 	//cv::Ptr<cv::freetype::FreeType2> m_ft2 ;
 	//cv::Ptr<cv::freetype::FreeType2> m_ft2_info ;
-
-	boost::thread* p_thread_zed_rgb ;
-	boost::thread* p_thread_zed_depth ;
-	boost::thread* p_thread_lucid_rgb ;
-	boost::thread* p_thread_lucid_nir ;
-	boost::thread* p_thread_lidar ;
-	void ThreadFunction_Subscriber_ZED_RGB();
-	void ThreadFunction_Subscriber_ZED_DEPTH();
-	void ThreadFunction_Subscriber_LUCID_RGB();
-	void ThreadFunction_Subscriber_LUCID_NIR();
-	void ThreadFunction_Subscriber_LIDAR();
-
 	double Get_Free_Disk_Space(const std::string path) ;
 	double Get_Total_Disk_Space(const std::string path) ;
 	
