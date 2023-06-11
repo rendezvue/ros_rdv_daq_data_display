@@ -204,6 +204,12 @@ void MainWindow::Update(void)
 	if( !m_image_zed_rgb.empty())	m_image_zed_rgb.copyTo(image_zed_rgb) ;
 	m_mutex_image_zed_rgb.unlock() ;
 
+	//Zed rgb	
+	cv::Mat image_zed_rgb2 ;
+	m_mutex_image_zed_rgb2.lock();
+	if( !m_image_zed_rgb2.empty())	m_image_zed_rgb2.copyTo(image_zed_rgb2) ;
+	m_mutex_image_zed_rgb2.unlock() ;
+
 	//Zed depth
 	cv::Mat image_zed_depth ;
 	m_mutex_image_zed_depth.lock();
@@ -247,9 +253,11 @@ void MainWindow::Update(void)
 			qimage_lidar = qimage_lidar.scaled(ui->label_image_top_left->width(), ui->label_image_top_left->height(), Qt::IgnoreAspectRatio);
 		}
 		ui->label_image_top_left->setPixmap(QPixmap::fromImage(qimage_lidar));
+		ui->label_image_top_left->repaint();
+		printf("LIDAR Image Update!!!!!!\n") ;
 	}
 	
-	if( !image_zed_rgb.empty() )
+	if( !image_zed_rgb.empty() || !image_zed_rgb2.empty() )
 	{
 	#if 0
 		//printf("Update 2 - 2 - 11 : image_zed_rgb : %d x %d\n", image_zed_rgb.cols, image_zed_rgb.rows) ;
@@ -264,15 +272,20 @@ void MainWindow::Update(void)
 		//printf("Update 2 - 2 - 3\n") ;
 		resize_image_zed_rgb.copyTo(m_display_image(rect_image_bottom_middle)) ;
 	#endif
+		cv::Mat image_data ;
+		if( !image_zed_rgb.empty() )	image_data = image_zed_rgb ;
+		else if( !image_zed_rgb2.empty() )	image_data = image_zed_rgb2 ;
 		
-		QImage qt_display_image((const uchar *) image_zed_rgb.data, image_zed_rgb.cols, image_zed_rgb.rows, image_zed_rgb.step, QImage::Format_RGB888);
+		QImage qt_display_image((const uchar *) image_data.data, image_data.cols, image_data.rows, image_data.step, QImage::Format_RGB888);
 		qt_display_image.bits(); // enforce deep copy, see documentation 
 
-		if( image_zed_rgb.cols != ui->label_image_bottom_middle->width() || image_zed_rgb.rows != ui->label_image_bottom_middle->height() )
+		if( image_data.cols != ui->label_image_bottom_middle->width() || image_data.rows != ui->label_image_bottom_middle->height() )
 		{
 			qt_display_image = qt_display_image.scaled(ui->label_image_bottom_middle->width(), ui->label_image_bottom_middle->height(), Qt::IgnoreAspectRatio);
 		}
 		ui->label_image_bottom_middle->setPixmap(QPixmap::fromImage(qt_display_image));
+		ui->label_image_bottom_middle->repaint();
+		printf("Stereo Image Update!!!!!!\n") ;
 	}
 
 	//printf("Update 3\n") ;
@@ -294,13 +307,17 @@ void MainWindow::Update(void)
 			qt_display_image = qt_display_image.scaled(ui->label_image_bottom_left->width(), ui->label_image_bottom_left->height(), Qt::IgnoreAspectRatio);
 		}
 		ui->label_image_bottom_left->setPixmap(QPixmap::fromImage(qt_display_image));
-		
+		ui->label_image_bottom_left->repaint();
+		printf("Depth Image Update!!!!!!\n") ;
 	}
 
 	//printf("Update 4\n") ;
 
 	if( !image_lucid_rgb.empty() )
 	{
+		//cv::imshow("test", image_lucid_rgb) ;
+		//cv::waitKey(1) ;
+		
 		#if 0
 		//printf("Update 4-1\n") ;
 		cv::Mat resize_image_lucid_rgb = cv::Mat(rect_image_top_middle.height, rect_image_top_middle.width, CV_8UC3) ;
@@ -320,6 +337,10 @@ void MainWindow::Update(void)
 			qt_display_image = qt_display_image.scaled(ui->label_image_top_middle->width(), ui->label_image_top_middle->height(), Qt::IgnoreAspectRatio);
 		}
 		ui->label_image_top_middle->setPixmap(QPixmap::fromImage(qt_display_image));
+
+		ui->label_image_top_middle->repaint();
+
+		printf("RGB Image Update!!!!!!\n") ;
 	}
 
 	//printf("Update 5\n") ;
@@ -341,7 +362,9 @@ void MainWindow::Update(void)
 			qt_display_image = qt_display_image.scaled(ui->label_image_top_right->width(), ui->label_image_top_right->height(), Qt::IgnoreAspectRatio);
 		}
 		ui->label_image_top_right->setPixmap(QPixmap::fromImage(qt_display_image));
-		
+
+		ui->label_image_top_right->repaint();
+		printf("NIR Image Update!!!!!!\n") ;
 	}
 
 	//printf("Update 6\n") ;
@@ -410,7 +433,8 @@ void MainWindow::Update(void)
 	m_mutex_str_now.unlock() ;
 	
 	ui->label_time->setText(QString::fromUtf8(str_text.c_str()))  ;
-
+	ui->label_time->repaint();
+	
 	ros::NodeHandle n;
 	std::string str_param_rec_path = "" ;
    	n.getParam("rosgab_rec_path", str_param_rec_path);
@@ -419,10 +443,12 @@ void MainWindow::Update(void)
 	std::string str_bag_path = str_param_rec_path ;
 	m_mutex_str_bag_path.unlock() ;
 	ui->label_bag_path->setText(QString::fromUtf8(str_bag_path.c_str()))  ;
+	ui->label_bag_path->repaint();
 
 	const std::string str_version = std::string("Version : ") + CRdv_Get_Git_Info::getInstance()->GET_VERSION() ; 
 	ui->label_version->setText(QString::fromUtf8(str_version.c_str()))  ;
-
+	ui->label_version->repaint();
+	
 	//CAN Data
 	m_mutex_str_imu.lock() ;
 	std::string str_imu_anglular_x  = m_str_imu_anglular_x; // = std::to_string(msg->angular_velocity.x) ;
@@ -432,13 +458,53 @@ void MainWindow::Update(void)
 	std::string str_imu_linear_y = m_str_imu_linear_y; // = std::to_string(msg->linear_acceleration.y) ;;
 	std::string str_imu_linear_z = m_str_imu_linear_z; // = std::to_string(msg->linear_acceleration.z) ;;
 	m_mutex_str_imu.unlock() ;
-	
-	ui->label_can_info_imu_angular_velocity_x->setText(QString::fromUtf8(str_imu_anglular_x.c_str()));
-	ui->label_can_info_imu_angular_velocity_y->setText(QString::fromUtf8(str_imu_anglular_y.c_str()));
-	ui->label_can_info_imu_angular_velocity_z->setText(QString::fromUtf8(str_imu_anglular_z.c_str()));
-	ui->label_can_info_imu_linear_acceleration_x->setText(QString::fromUtf8(str_imu_linear_x.c_str()));
-	ui->label_can_info_imu_linear_acceleration_y->setText(QString::fromUtf8(str_imu_linear_y.c_str()));
-	ui->label_can_info_imu_linear_acceleration_z->setText(QString::fromUtf8(str_imu_linear_z.c_str()));
+
+	m_mutex_str_zed_imu.lock() ;
+	std::string str_zed_imu_anglular_x  = m_str_zed_imu_anglular_x; // = std::to_string(msg->angular_velocity.x) ;
+	std::string str_zed_imu_anglular_y = m_str_zed_imu_anglular_y; // = std::to_string(msg->angular_velocity.y) ;;
+	std::string str_zed_imu_anglular_z = m_str_zed_imu_anglular_z; // = std::to_string(msg->angular_velocity.z) ;;
+	std::string str_zed_imu_linear_x = m_str_zed_imu_linear_x; // = std::to_string(msg->linear_acceleration.x) ;;
+	std::string str_zed_imu_linear_y = m_str_zed_imu_linear_y; // = std::to_string(msg->linear_acceleration.y) ;;
+	std::string str_zed_imu_linear_z = m_str_zed_imu_linear_z; // = std::to_string(msg->linear_acceleration.z) ;;
+	m_mutex_str_zed_imu.unlock() ;
+
+	std::string str_dp_imu_anglular_x ; // = std::to_string(msg->angular_velocity.x) ;
+	std::string str_dp_imu_anglular_y ; // = std::to_string(msg->angular_velocity.y) ;;
+	std::string str_dp_imu_anglular_z ; // = std::to_string(msg->angular_velocity.z) ;;
+	std::string str_dp_imu_linear_x ; // = std::to_string(msg->linear_acceleration.x) ;;
+	std::string str_dp_imu_linear_y ; // = std::to_string(msg->linear_acceleration.y) ;;
+	std::string str_dp_imu_linear_z ; // = std::to_string(msg->linear_acceleration.z) ;;
+	if( !str_imu_anglular_x.empty() )
+	{		
+		str_dp_imu_anglular_x = str_imu_anglular_x ; // = std::to_string(msg->angular_velocity.x) ;
+		str_dp_imu_anglular_y = str_imu_anglular_y ; // = std::to_string(msg->angular_velocity.y) ;;
+		str_dp_imu_anglular_z = str_imu_anglular_z ; // = std::to_string(msg->angular_velocity.z) ;;
+		str_dp_imu_linear_x = str_imu_linear_x ; // = std::to_string(msg->linear_acceleration.x) ;;
+		str_dp_imu_linear_y = str_imu_linear_y ; // = std::to_string(msg->linear_acceleration.y) ;;
+		str_dp_imu_linear_z = str_imu_linear_z ; // = std::to_string(msg->linear_acceleration.z) ;;
+	}
+	else if( !str_zed_imu_anglular_x.empty() )
+	{		
+		str_dp_imu_anglular_x = str_zed_imu_anglular_x ; // = std::to_string(msg->angular_velocity.x) ;
+		str_dp_imu_anglular_y = str_zed_imu_anglular_y ; // = std::to_string(msg->angular_velocity.y) ;;
+		str_dp_imu_anglular_z = str_zed_imu_anglular_z ; // = std::to_string(msg->angular_velocity.z) ;;
+		str_dp_imu_linear_x = str_zed_imu_linear_x ; // = std::to_string(msg->linear_acceleration.x) ;;
+		str_dp_imu_linear_y = str_zed_imu_linear_y ; // = std::to_string(msg->linear_acceleration.y) ;;
+		str_dp_imu_linear_z = str_zed_imu_linear_z ; // = std::to_string(msg->linear_acceleration.z) ;;
+	}
+		
+	ui->label_can_info_imu_angular_velocity_x->setText(QString::fromUtf8(str_dp_imu_anglular_x.c_str()));
+	ui->label_can_info_imu_angular_velocity_x->repaint();
+	ui->label_can_info_imu_angular_velocity_y->setText(QString::fromUtf8(str_dp_imu_anglular_y.c_str()));
+	ui->label_can_info_imu_angular_velocity_y->repaint();
+	ui->label_can_info_imu_angular_velocity_z->setText(QString::fromUtf8(str_dp_imu_anglular_z.c_str()));
+	ui->label_can_info_imu_angular_velocity_z->repaint();
+	ui->label_can_info_imu_linear_acceleration_x->setText(QString::fromUtf8(str_dp_imu_linear_x.c_str()));
+	ui->label_can_info_imu_linear_acceleration_x->repaint();
+	ui->label_can_info_imu_linear_acceleration_y->setText(QString::fromUtf8(str_dp_imu_linear_y.c_str()));
+	ui->label_can_info_imu_linear_acceleration_y->repaint();
+	ui->label_can_info_imu_linear_acceleration_z->setText(QString::fromUtf8(str_dp_imu_linear_z.c_str()));
+	ui->label_can_info_imu_linear_acceleration_z->repaint();
 
 	//GPS
 	m_mutex_str_gps.lock();
@@ -446,36 +512,43 @@ void MainWindow::Update(void)
 	std::string str_longitude = m_str_longitude + " °";
 	m_mutex_str_gps.unlock();
 	ui->label_can_info_latitude->setText(QString::fromUtf8(str_latitude.c_str()));
+	ui->label_can_info_latitude->repaint();
 	ui->label_can_info_longitude->setText(QString::fromUtf8(str_longitude.c_str()));
-
+	ui->label_can_info_longitude->repaint();
+	
 	//엔진 스피드
 	m_mutex_str_es.lock();
 	std::string str_es = m_str_es + " RPM";
 	m_mutex_str_es.unlock();
 	ui->label_can_info_engine_speed->setText(QString::fromUtf8(str_es.c_str()));
-
+	ui->label_can_info_engine_speed->repaint();
+	
 	//엔진 토크
 	m_mutex_str_et.lock();
 	std::string str_et  = m_str_et + " %" ;
 	m_mutex_str_et.unlock();
 	ui->label_can_info_engine_torque->setText(QString::fromUtf8(str_et.c_str()));
+	ui->label_can_info_engine_torque->repaint();
 	
 	//차량 스피드
 	m_mutex_str_vs.lock();
 	std::string str_vs = m_str_vs + " km/h";
 	m_mutex_str_vs.unlock();
 	ui->label_can_info_vehicle_speed->setText(QString::fromUtf8(str_vs.c_str()));
-
+	ui->label_can_info_vehicle_speed->repaint();
+	
 	//히치제어유닛
 	m_mutex_str_hitch_wheel_angle.lock();
 	std::string str_hitch_wheel_angle = m_str_hitch_wheel_angle + " mV" ;
 	m_mutex_str_hitch_wheel_angle.unlock();
 	ui->label_can_info_hitch_wheel_angle->setText(QString::fromUtf8(str_hitch_wheel_angle.c_str()));
+	ui->label_can_info_hitch_wheel_angle->repaint();
 	
 	m_mutex_str_can_raw.lock() ;
 	std::string str_can_raw = m_str_can_raw ;
 	m_mutex_str_can_raw.unlock() ;
 	ui->label_can_raw->setText(QString::fromUtf8(str_can_raw.c_str()));
+	ui->label_can_raw->repaint();
 	
 	//printf("Update 9\n") ;
 
@@ -626,6 +699,26 @@ void MainWindow::pcd2Mat(const pcl::PointCloud<pcl::PointXYZ> &pc)
 	//ROS_INFO("pcd2Mat 7");
 	//return m_p_qimage ;
 }
+
+void MainWindow::Callback_Ros_Zed_IMU(const sensor_msgs::Imu::ConstPtr& msg) 
+{
+	printf("ZED IMU Info ->\n") ;		
+
+	//ROS_INFO("Imu Seq: [%d]", msg->header.seq);
+  	//ROS_INFO("Imu Orientation x: [%f], y: [%f], z: [%f], w: [%f]", msg->orientation.x,msg->orientation.y,msg->orientation.z,msg->orientation.w);
+
+	m_mutex_str_zed_imu.lock() ;
+	m_str_zed_imu_anglular_x = std::to_string(msg->angular_velocity.x) ;
+	m_str_zed_imu_anglular_y = std::to_string(msg->angular_velocity.y) ;;
+	m_str_zed_imu_anglular_z = std::to_string(msg->angular_velocity.z) ;;
+	m_str_zed_imu_linear_x = std::to_string(msg->linear_acceleration.x) ;;
+	m_str_zed_imu_linear_y = std::to_string(msg->linear_acceleration.y) ;;
+	m_str_zed_imu_linear_z = std::to_string(msg->linear_acceleration.z) ;;
+	m_mutex_str_zed_imu.unlock() ;
+	
+	printf("<- ZED IMU Info\n") ;
+}
+
 
 void MainWindow::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) 
 {
@@ -916,10 +1009,17 @@ void MainWindow::ThreadFunction(void)
 	//zed color
 	image_transport::ImageTransport it(n);
   	image_transport::Subscriber sub = it.subscribe("/zed2i/zed_node/rgb_raw/image_raw_color", 10, &MainWindow::Callback_Ros_Zed, this);
+	
+	//zed color2
+	image_transport::ImageTransport it2(n);
+  	image_transport::Subscriber sub2 = it.subscribe("/zed2i/zed_node/left/image_rect_color", 10, &MainWindow::Callback_Ros_Zed2, this);
 
 	//zed depth
 	image_transport::ImageTransport it_zed_depth(n);
 	image_transport::Subscriber sub_zed_depth = it_zed_depth.subscribe("/zed2i/zed_node/depth/depth_registered", 10, &MainWindow::Callback_Ros_Zed_Depth, this);
+
+	//zed IMU
+	ros::Subscriber sub_zed_imu = n.subscribe("/zed2i/zed_node/imu/data", 1000, &MainWindow::Callback_Ros_Zed_IMU, this);
 
 	//lucid rgb
 	image_transport::ImageTransport it_lucid_rgb(n);
@@ -984,6 +1084,27 @@ void MainWindow::Callback_Ros_Zed( const sensor_msgs::ImageConstPtr& msg )
 	m_mutex_image_zed_rgb.unlock();
 	printf("<- Stereo Color Info\n") ;
 }
+
+void MainWindow::Callback_Ros_Zed2( const sensor_msgs::ImageConstPtr& msg ) 
+{
+	printf("Stereo Color2 Info ->\n") ;
+	m_mutex_image_zed_rgb2.lock();
+	
+	cv_bridge::CvImagePtr cv_ptr;
+	try 
+	{		
+		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGB8);
+		cv_ptr->image.copyTo(m_image_zed_rgb2) ;
+	}
+	catch ( cv_bridge::Exception& e ) 
+	{
+		ROS_ERROR(" cv_bridge exception: %s", e.what() );
+	}
+
+	m_mutex_image_zed_rgb2.unlock();
+	printf("<- Stereo Color2 Info\n") ;
+}
+
 
 void MainWindow::Callback_Ros_Zed_Depth( const sensor_msgs::ImageConstPtr& msg ) 
 {

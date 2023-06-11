@@ -148,7 +148,9 @@ public:
 
 	//ROS callback
 	void Callback_Ros_Zed( const sensor_msgs::ImageConstPtr& msg ) ;
+	void Callback_Ros_Zed2( const sensor_msgs::ImageConstPtr& msg ) ;
 	void Callback_Ros_Zed_Depth( const sensor_msgs::ImageConstPtr& msg ) ;
+	void Callback_Ros_Zed_IMU(const sensor_msgs::Imu::ConstPtr& msg)  ;
 
 	void Callback_Ros_Lucid_RGB( const sensor_msgs::ImageConstPtr& msg ) ;
 	void Callback_Ros_Lucid_NIR( const sensor_msgs::ImageConstPtr& msg ) ;
@@ -181,6 +183,7 @@ private:
 
 	//image list
 	cv::Mat m_image_zed_rgb ;
+	cv::Mat m_image_zed_rgb2 ;
 	cv::Mat m_image_zed_depth ;
 	cv::Mat m_image_lidar ;
 	QImage m_qimage_lidar ;
@@ -189,6 +192,7 @@ private:
 
 	//image mutex
 	boost::mutex m_mutex_image_zed_rgb;
+	boost::mutex m_mutex_image_zed_rgb2;
 	boost::mutex m_mutex_image_zed_depth;
 	boost::mutex m_mutex_image_lucid_rgb ;
 	boost::mutex m_mutex_image_lucid_nir ;
@@ -228,6 +232,14 @@ private:
 	std::string m_str_imu_linear_x;
 	std::string m_str_imu_linear_y;
 	std::string m_str_imu_linear_z;
+
+	boost::mutex m_mutex_str_zed_imu;
+	std::string m_str_zed_imu_anglular_x;
+	std::string m_str_zed_imu_anglular_y;
+	std::string m_str_zed_imu_anglular_z;
+	std::string m_str_zed_imu_linear_x;
+	std::string m_str_zed_imu_linear_y;
+	std::string m_str_zed_imu_linear_z;
 
 	
 	//GPS data
